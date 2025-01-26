@@ -1,0 +1,35 @@
+trigger:
+- master
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+steps:
+- script: |
+    echo "Instalando dependências..."
+    sudo apt-get update
+    sudo apt-get install -y python3-pip
+    pip3 install virtualenv
+  displayName: 'Instalar dependências do sistema'
+
+- script: |
+    echo "Criando ambiente virtual..."
+    virtualenv venv
+    source venv/bin/activate
+    echo "Instalando pacotes Python..."
+    pip install -r requirements_app.txt
+    pip install -r requirements_tests.txt
+  displayName: 'Configurar ambiente Python'
+
+- script: |
+    echo "Inicializando o banco de dados..."
+    source venv/bin/activate
+    python manage.py migrate
+    python manage.py collectstatic --noinput
+  displayName: 'Inicializar banco de dados'
+
+- script: |
+    echo "Executando testes..."
+    source venv/bin/activate
+    behave
+  displayName: 'Executar testes de segurança'
